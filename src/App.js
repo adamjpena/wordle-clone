@@ -2,6 +2,7 @@ import { useState } from 'react';
 import TileGrid from './components/TileGrid';
 import { words } from './store/words';
 import { randomIntFromInterval } from './helpers';
+import useLocalStorage from './hooks/useLocalStorage';
 
 import './App.scss';
 import Keyboard from './components/Keyboard';
@@ -10,9 +11,14 @@ const ROW_COUNT = 6;
 const COLUMN_COUNT = 5;
 
 const App = () => {
-  // TODO set and remove successful words from localStorage
+  const [completedWords, setCompletedWords] = useLocalStorage(
+    'completedWords',
+    [],
+  );
+  const wordsToRemove = new Set(completedWords);
+  const nonCompletedWords = words.filter((x) => !wordsToRemove.has(x));
   const [word, setWord] = useState(
-    words[randomIntFromInterval(0, words.length)],
+    nonCompletedWords[randomIntFromInterval(0, nonCompletedWords.length)],
   );
   const [entries, setEntries] = useState(
     Array.from({ length: ROW_COUNT }, () => Array(COLUMN_COUNT).fill('')),
@@ -38,7 +44,8 @@ const App = () => {
       setEntries(currentEntries);
       setMatches(entry);
       setGameOver(true);
-      // TODO store word in localStorage and add celebration
+      setCompletedWords([...completedWords, word]);
+      // TODO add celebration
       return;
     }
     // TODO use api to determine if word is real
