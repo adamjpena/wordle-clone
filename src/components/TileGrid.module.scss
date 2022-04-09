@@ -1,0 +1,19 @@
+.table {
+  margin: auto;
+  max-width: 100%;
+  width: 350px;
+}
+
+.tbody {
+  column-gap: 5px;
+  display: grid;
+  grid-template-rows: repeat(6, 1fr);
+  row-gap: 5px;
+}
+
+.row {
+  column-gap: 5px;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  row-gap: 5px;
+}

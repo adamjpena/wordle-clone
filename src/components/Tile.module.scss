@@ -1,0 +1,22 @@
+.tile {
+  align-items: center;
+  display: inline-flex;
+  border: solid 2px #565758;
+  font-weight: 700;
+  font-size: 32px;
+  height: 62px;
+  justify-content: center;
+  max-width: 62px;
+}
+
+.absent {
+  background-color: #3a3a3c;
+}
+
+.present {
+  background-color: #b59f3b;
+}
+
+.correct {
+  background-color: #538d4e;
+}

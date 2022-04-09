@@ -1,0 +1,36 @@
+.row {
+  align-items: center;
+  column-gap: 3px;
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  margin: 0 auto 8px;
+  touch-action: manipulation;
+}
+
+.cell {
+  // align-items: center;
+  display: flex;
+  // justify-content: center;
+  touch-action: manipulation;
+}
+
+.button {
+  background-color: #818384;
+  border: none;
+  border-radius: 4px;
+  color: #fff;
+  cursor: pointer;
+  display: block;
+  font-size: 14px;
+  height: 58px;
+  min-width: 43px;
+}
+
+.absent {
+  background-color: #3a3a3c;
+}
+
+.correct {
+  background-color: #538d4e;
+}
