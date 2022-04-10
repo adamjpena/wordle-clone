@@ -9,6 +9,7 @@ import useLocalStorage from './hooks/useLocalStorage';
 import styles from './App.module.scss';
 import Keyboard from './components/Keyboard';
 import Statistics from './components/Statistics';
+import ConfettiLayer from './components/ConfettiLayer';
 
 const MESSAGES = {
   notEnoughLetters: 'Not enough letters',
@@ -52,6 +53,7 @@ const App = () => {
   const [misses, setMisses] = useState([]);
   const [gameOver, setGameOver] = useState(false);
   const [shouldShowStats, setShouldShowStats] = useState(false);
+  const [shouldShowConfetti, setShouldShowConfetti] = useState(false);
   const [isInvalid, setIsInvalid] = useState(false);
   const [message, setMessage] = useState(null);
   const [isWinner, setIsWinner] = useState(false);
@@ -67,7 +69,7 @@ const App = () => {
         setIsInvalid(false);
       }
       clearInterval(messageTimeout);
-    }, 2000);
+    }, 2500);
   };
   const endGame = ({ win = false }) => {
     showMessage({
@@ -85,7 +87,11 @@ const App = () => {
       setWinCount(winCount + 1);
       setCompletedWords([...completedWords, word]);
       setGuessDistribution(updatedGuessDistribution);
-      setShouldShowStats(true);
+      setShouldShowConfetti(true);
+      let showStatsTimeout = setTimeout(() => {
+        setShouldShowStats(true);
+        clearInterval(showStatsTimeout);
+      }, 2500);
       return;
     }
     setStreak(0);
@@ -198,6 +204,7 @@ const App = () => {
     setMatches([]);
     setMisses([]);
     setShouldShowStats(false);
+    setShouldShowConfetti(false);
     setIsWinner(false);
     setGameOver(false);
   };
@@ -222,6 +229,7 @@ const App = () => {
           removeLetter={removeLetter}
           submitEntry={submitEntry}
         />
+        {shouldShowConfetti && <ConfettiLayer guesses={currentRow + 1} />}
         {shouldShowStats && (
           <Overlay>
             <Statistics
