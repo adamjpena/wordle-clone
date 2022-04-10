@@ -1,0 +1,131 @@
+.modal {
+  margin: 0 auto;
+  position: relative;
+  border-radius: 8px;
+  border: 1px solid #1a1a1b;
+  background-color: #121213;
+  box-shadow: 0 4px 23px 0 rgb(0 0 0 / 20%);
+  width: 90%;
+  max-height: 90%;
+  overflow-y: auto;
+  max-width: 500px;
+  padding: 16px;
+  box-sizing: border-box;
+}
+
+.closeIcon {
+  align-items: center;
+  background-color: transparent;
+  border: 0;
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  font-size: 17px;
+  font-weight: 700;
+  height: 24px;
+  justify-content: center;
+  position: absolute;
+  padding: 17px;
+  top: 10px;
+  right: 10px;
+  width: 24px;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 16px 0;
+}
+
+.mainStats {
+  margin: 0 auto;
+}
+
+.stat {
+  font-size: 36px;
+  font-weight: 400;
+  text-align: center;
+  letter-spacing: 0.05em;
+  font-variant-numeric: proportional-nums;
+}
+
+.label {
+  font-size: 12px;
+  text-align: center;
+}
+
+.guessDistribution {
+  padding-bottom: 10px;
+  width: 80%;
+}
+
+.graphContainer {
+  width: 100%;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  padding-bottom: 4px;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.graph {
+  height: 100%;
+  padding-left: 4px;
+  width: 100%;
+}
+
+.graphBar {
+  background-color: #3a3a3c;
+  display: flex;
+  justify-content: center;
+  min-width: 7%;
+
+  &.alignRight {
+    justify-content: flex-end;
+    padding-right: 8px;
+  }
+}
+
+.numGuesses {
+  font-weight: 500;
+}
+
+.highlight {
+  background-color: #538d4e;
+}
+
+.heading {
+  font-weight: 700;
+  font-size: 16px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  text-align: center;
+  margin: 10px auto;
+
+  &.marginTop0 {
+    margin-top: 0;
+  }
+}
+
+.buttonNewGame {
+  background-color: #538d4e;
+  color: #fff;
+  font-family: inherit;
+  font-weight: bold;
+  border-radius: 4px;
+  cursor: pointer;
+  border: none;
+  user-select: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-transform: uppercase;
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0.3);
+  width: 80%;
+  font-size: 20px;
+  height: 52px;
+  -webkit-filter: brightness(100%);
+}

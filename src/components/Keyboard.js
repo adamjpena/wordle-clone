@@ -16,7 +16,7 @@ const Keyboard = ({
     ['z', 'x', 'c', 'v', 'b', 'n', 'm'],
   ];
   return (
-    <table>
+    <table className={styles.keyboard}>
       <tbody>
         {keyboardLetters.map((keyboardRow, i) => {
           const isLastRow = i === keyboardLetters.length - 1;
@@ -24,7 +24,10 @@ const Keyboard = ({
             <tr className={styles.row} key={`keyboard-row-${i}`}>
               {isLastRow && (
                 <td>
-                  <button className={styles.button} onClick={submitEntry}>
+                  <button
+                    className={cx(styles.button, styles.special)}
+                    onClick={submitEntry}
+                  >
                     ENTER
                   </button>
                 </td>
@@ -47,7 +50,10 @@ const Keyboard = ({
               })}
               {isLastRow && (
                 <td>
-                  <button className={styles.button} onClick={removeLetter}>
+                  <button
+                    className={cx(styles.button, styles.special)}
+                    onClick={removeLetter}
+                  >
                     BACK
                   </button>
                 </td>

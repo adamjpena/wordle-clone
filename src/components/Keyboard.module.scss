@@ -1,10 +1,14 @@
+.keyboard {
+  margin: 3px auto;
+}
+
 .row {
   align-items: center;
   column-gap: 3px;
   display: flex;
   justify-content: center;
   width: 100%;
-  margin: 0 auto 8px;
+  margin: 0 auto 5px;
   touch-action: manipulation;
 }
 
@@ -24,7 +28,14 @@
   display: block;
   font-size: 14px;
   height: 58px;
-  min-width: 43px;
+  width: 43px;
+  max-width: calc(10vw - 7px);
+
+  &.special {
+    min-width: 43px;
+    max-width: none;
+    width: auto;
+  }
 }
 
 .absent {
