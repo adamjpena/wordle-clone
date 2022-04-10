@@ -10,6 +10,11 @@ import styles from './App.module.scss';
 import Keyboard from './components/Keyboard';
 import Statistics from './components/Statistics';
 
+const MESSAGES = {
+  notEnoughLetters: 'Not enough letters',
+  notInWordList: 'Not in word list',
+  endGame: ['Genius', 'Magnificent', 'Impressive', 'Splendid', 'Great', 'Phew'],
+};
 const ROW_COUNT = 6;
 const COLUMN_COUNT = 5;
 
@@ -48,30 +53,32 @@ const App = () => {
   const [gameOver, setGameOver] = useState(false);
   const [shouldShowStats, setShouldShowStats] = useState(false);
   const [isInvalid, setIsInvalid] = useState(false);
-  const [isInsufficient, setInsufficient] = useState(false);
+  const [message, setMessage] = useState(null);
+  const [isWinner, setIsWinner] = useState(false);
 
-  const triggerInvalid = () => {
-    setIsInvalid(true);
-    let invalidTimeout = setTimeout(() => {
-      setIsInvalid(false);
-      clearInterval(invalidTimeout);
-    }, 1000);
+  const showMessage = ({ msg, invalid = false }) => {
+    setMessage(msg);
+    if (invalid) {
+      setIsInvalid(true);
+    }
+    let messageTimeout = setTimeout(() => {
+      setMessage(null);
+      if (invalid) {
+        setIsInvalid(false);
+      }
+      clearInterval(messageTimeout);
+    }, 2000);
   };
-
-  const triggerInsufficient = () => {
-    setInsufficient(true);
-    let invalidTimeout = setTimeout(() => {
-      setInsufficient(false);
-      clearInterval(invalidTimeout);
-    }, 1000);
-  };
-
   const endGame = ({ win = false }) => {
-    let updatedGuessDistribution = guessDistribution;
-    updatedGuessDistribution[currentRow + 1] += 1;
+    showMessage({
+      msg: win ? MESSAGES.endGame[currentRow] : word.toUpperCase(),
+    });
     setGameOver(true);
     setGameCount(gameCount + 1);
     if (win) {
+      setIsWinner(true);
+      let updatedGuessDistribution = guessDistribution;
+      updatedGuessDistribution[currentRow + 1] += 1;
       setStreak(streak + 1);
       setMaxStreak(Math.max(maxStreak, streak + 1));
       setCurrentRow(currentRow + 1);
@@ -91,13 +98,13 @@ const App = () => {
     }
     const entry = entries[currentRow];
     if (entry.includes('')) {
-      triggerInsufficient();
+      showMessage({ msg: MESSAGES.notEnoughLetters, invalid: true });
       return;
     }
     const entryWord = entry.join('');
     let currentEntries = [...entries];
     if (entryWord === word) {
-      triggerInvalid(false);
+      setIsInvalid(false);
       setMatches(entry);
       currentEntries[currentRow] = entry;
       setEntries(currentEntries);
@@ -105,10 +112,10 @@ const App = () => {
       return;
     }
     if (!wordsDictionary.includes(entryWord)) {
-      triggerInvalid(true);
+      showMessage({ msg: MESSAGES.notInWordList, invalid: true });
       return;
     }
-    triggerInvalid(false);
+    setIsInvalid(false);
     setCurrentRow(currentRow + 1);
     currentEntries[currentRow] = entry;
     setEntries(currentEntries);
@@ -191,6 +198,7 @@ const App = () => {
     setMatches([]);
     setMisses([]);
     setShouldShowStats(false);
+    setIsWinner(false);
     setGameOver(false);
   };
 
@@ -200,15 +208,12 @@ const App = () => {
         <h1 className={styles.heading}>WORDLE</h1>
       </header>
       <main>
-        {isInvalid && <div className={styles.message}>Not in word list</div>}
-        {isInsufficient && (
-          <div className={styles.message}>Not enough letters</div>
-        )}
+        {message && <div className={styles.message}>{message}</div>}
         <TileGrid
           word={word}
           currentRow={currentRow}
           entries={entries}
-          isInvalid={isInvalid || isInsufficient}
+          isInvalid={isInvalid}
         />
         <Keyboard
           matches={matches}
@@ -228,6 +233,7 @@ const App = () => {
               currentRow={currentRow}
               startNewGame={startNewGame}
               closeStatistics={startNewGame}
+              isWinner={isWinner}
             />
           </Overlay>
         )}

@@ -11,6 +11,7 @@ const Statistics = ({
   currentRow,
   closeStatistics,
   startNewGame,
+  isWinner,
 }) => {
   return (
     <div className={styles.modal}>
@@ -46,11 +47,15 @@ const Statistics = ({
                 <div className={styles.graph}>
                   <div
                     className={cx(styles.graphBar, {
-                      [styles.highlight]: parseInt(guesses) === currentRow,
+                      [styles.highlight]:
+                        isWinner && parseInt(guesses) === currentRow,
                       [styles.alignRight]: count > 0,
                     })}
                     style={{
-                      width: `${Math.floor((count / winCount) * 100)}%`,
+                      width:
+                        count == 0
+                          ? 0
+                          : `${Math.floor((count / winCount) * 100)}%`,
                     }}
                   >
                     <div className={styles.numGuesses}>{count}</div>
