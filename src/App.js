@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import TileGrid from './components/TileGrid';
 import Overlay from './components/Overlay';
 import { words } from './store/words';
+import { wordsDictionary } from './store/words-dictionary';
 import { randomIntFromInterval } from './helpers';
 import useLocalStorage from './hooks/useLocalStorage';
 
@@ -46,6 +47,24 @@ const App = () => {
   const [misses, setMisses] = useState([]);
   const [gameOver, setGameOver] = useState(false);
   const [shouldShowStats, setShouldShowStats] = useState(false);
+  const [isInvalid, setIsInvalid] = useState(false);
+  const [isInsufficient, setInsufficient] = useState(false);
+
+  const triggerInvalid = () => {
+    setIsInvalid(true);
+    let invalidTimeout = setTimeout(() => {
+      setIsInvalid(false);
+      clearInterval(invalidTimeout);
+    }, 1000);
+  };
+
+  const triggerInsufficient = () => {
+    setInsufficient(true);
+    let invalidTimeout = setTimeout(() => {
+      setInsufficient(false);
+      clearInterval(invalidTimeout);
+    }, 1000);
+  };
 
   const endGame = ({ win = false }) => {
     let updatedGuessDistribution = guessDistribution;
@@ -72,24 +91,24 @@ const App = () => {
     }
     const entry = entries[currentRow];
     if (entry.includes('')) {
+      triggerInsufficient();
       return;
     }
     const entryWord = entry.join('');
     let currentEntries = [...entries];
     if (entryWord === word) {
+      triggerInvalid(false);
       setMatches(entry);
       currentEntries[currentRow] = entry;
       setEntries(currentEntries);
       endGame({ win: true });
       return;
     }
-    // TODO use api to determine if word is real
-    const isWord = true;
-    if (!isWord) {
-      // TODO banner alert: word isn't real
+    if (!wordsDictionary.includes(entryWord)) {
+      triggerInvalid(true);
       return;
     }
-
+    triggerInvalid(false);
     setCurrentRow(currentRow + 1);
     currentEntries[currentRow] = entry;
     setEntries(currentEntries);
@@ -181,7 +200,16 @@ const App = () => {
         <h1 className={styles.heading}>WORDLE</h1>
       </header>
       <main>
-        <TileGrid word={word} currentRow={currentRow} entries={entries} />
+        {isInvalid && <div className={styles.message}>Not in word list</div>}
+        {isInsufficient && (
+          <div className={styles.message}>Not enough letters</div>
+        )}
+        <TileGrid
+          word={word}
+          currentRow={currentRow}
+          entries={entries}
+          isInvalid={isInvalid || isInsufficient}
+        />
         <Keyboard
           matches={matches}
           misses={misses}
