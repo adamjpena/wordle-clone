@@ -61,8 +61,8 @@ const App = () => {
   const [message, setMessage] = useState(null);
   const [isWinner, setIsWinner] = useState(false);
 
-  const showMessage = ({ msg, invalid = false }) => {
-    setMessage(msg);
+  const showMessage = ({ message, invalid = false }) => {
+    setMessage(message);
     if (invalid) {
       setIsInvalid(true);
     }
@@ -76,7 +76,7 @@ const App = () => {
   };
   const endGame = ({ win = false }) => {
     showMessage({
-      msg: win ? MESSAGES.endGame[currentRow] : word.toUpperCase(),
+      message: win ? MESSAGES.endGame[currentRow] : word.toUpperCase(),
     });
     setGameOver(true);
     setGameCount(gameCount + 1);
@@ -107,7 +107,7 @@ const App = () => {
     }
     const entry = entries[currentRow];
     if (entry.includes('')) {
-      showMessage({ msg: MESSAGES.notEnoughLetters, invalid: true });
+      showMessage({ message: MESSAGES.notEnoughLetters, invalid: true });
       return;
     }
     const entryWord = entry.join('');
@@ -121,7 +121,7 @@ const App = () => {
       return;
     }
     if (!wordsDictionary.includes(entryWord)) {
-      showMessage({ msg: MESSAGES.notInWordList, invalid: true });
+      showMessage({ message: MESSAGES.notInWordList, invalid: true });
       return;
     }
     setIsInvalid(false);
