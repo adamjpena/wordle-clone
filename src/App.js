@@ -1,15 +1,16 @@
 import { useState, useEffect } from 'react';
-import { words } from './store/words';
-import { wordsDictionary } from './store/words-dictionary';
+import { words } from './store/game-words';
+import { wordsDictionary } from './store/dictionary-five-letters';
 import { randomIntFromInterval } from './helpers';
 import useLocalStorage from './hooks/useLocalStorage';
 
+import Header from './components/Header';
+import Message from './components/Message';
 import TileGrid from './components/TileGrid';
 import Overlay from './components/Overlay';
 import Keyboard from './components/Keyboard';
 import Statistics from './components/Statistics';
 import ConfettiLayer from './components/ConfettiLayer';
-import nLogo from './assets/n-logo.png';
 
 import styles from './App.module.scss';
 
@@ -213,14 +214,9 @@ const App = () => {
 
   return (
     <div className={styles.app}>
-      <header className={styles.header}>
-        <a className={styles.logoLink} href='https://adamjpena.com'>
-          <img height='40' width='40' src={nLogo} alt='Adam Pena logo icon' />
-        </a>
-        <h1 className={styles.heading}>WORDLE</h1>
-      </header>
+      <Header />
       <main>
-        {message && <div className={styles.message}>{message}</div>}
+        {message && <Message message={message} />}
         <TileGrid
           word={word}
           currentRow={currentRow}
