@@ -54,7 +54,7 @@ const Keyboard = ({
                     className={cx(styles.button, styles.special)}
                     onClick={removeLetter}
                   >
-                    BACK
+                    ⌫
                   </button>
                 </td>
               )}
