@@ -1,15 +1,17 @@
 import { useState, useEffect } from 'react';
-import TileGrid from './components/TileGrid';
-import Overlay from './components/Overlay';
 import { words } from './store/words';
 import { wordsDictionary } from './store/words-dictionary';
 import { randomIntFromInterval } from './helpers';
 import useLocalStorage from './hooks/useLocalStorage';
 
-import styles from './App.module.scss';
+import TileGrid from './components/TileGrid';
+import Overlay from './components/Overlay';
 import Keyboard from './components/Keyboard';
 import Statistics from './components/Statistics';
 import ConfettiLayer from './components/ConfettiLayer';
+import nLogo from './assets/n-logo.png';
+
+import styles from './App.module.scss';
 
 const MESSAGES = {
   notEnoughLetters: 'Not enough letters',
@@ -211,7 +213,10 @@ const App = () => {
 
   return (
     <div className={styles.app}>
-      <header className='App-header'>
+      <header className={styles.header}>
+        <a className={styles.logoLink} href='https://adamjpena.com'>
+          <img height='40' width='40' src={nLogo} alt='Adam Pena logo icon' />
+        </a>
         <h1 className={styles.heading}>WORDLE</h1>
       </header>
       <main>

@@ -2,6 +2,18 @@
   text-align: center;
 }
 
+.header {
+  position: relative;
+  width: 350px;
+  margin: 0 auto;
+}
+
+.logoLink {
+  position: absolute;
+  top: 3px;
+  left: 2px;
+}
+
 .heading {
   margin: 8px auto;
 }
