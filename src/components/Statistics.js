@@ -31,10 +31,10 @@ const Statistics = ({
               <td className={styles.stat}>{maxStreak}</td>
             </tr>
             <tr>
-              <td className={styles.label}>Played:</td>
-              <td className={styles.label}>Win %:</td>
-              <td className={styles.label}>Current Streak:</td>
-              <td className={styles.label}>Max Streak:</td>
+              <td className={styles.label}>Played</td>
+              <td className={styles.label}>Win %</td>
+              <td className={styles.label}>Current Streak</td>
+              <td className={styles.label}>Max Streak</td>
             </tr>
           </tbody>
         </table>
