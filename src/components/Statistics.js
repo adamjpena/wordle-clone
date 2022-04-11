@@ -53,7 +53,7 @@ const Statistics = ({
                     })}
                     style={{
                       width:
-                        count == 0
+                        count === 0
                           ? 0
                           : `${Math.floor((count / winCount) * 100)}%`,
                     }}
