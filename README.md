@@ -1,6 +1,6 @@
 # Wordle Clone
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+[See it in action](https://adamjpena.github.io/wordle-clone/).
 
 ## Available Scripts
 
