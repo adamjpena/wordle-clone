@@ -3,6 +3,5 @@ import App from './App';
 
 test('renders heading', () => {
   render(<App />);
-  const linkElement = screen.getByText(/WORDLE/i);
-  expect(linkElement).toBeInTheDocument();
+  expect(screen.getByText(/WORDLE/i)).toBeInTheDocument();
 });
