@@ -1,4 +1,4 @@
-import nLogo from '../assets/n-logo.png';
+import nLogo from '../assets/logo.png';
 import styles from './Header.module.scss';
 
 const Header = () => {

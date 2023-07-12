@@ -8,6 +8,7 @@ const ConfettiLayer = ({ guesses = 6 }) => {
         x: window.innerWidth / 2,
         y: window.innerHeight * 0.9,
         angle: 0,
+        spreadAngle: Math.PI,
       }),
     ],
     [],
