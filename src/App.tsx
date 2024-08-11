@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { words } from './store/game-words';
 import { wordsDictionary } from './store/dictionary-five-letters';
 import { randomIntFromInterval } from './helpers';
-import useLocalStorage from './hooks/useLocalStorage';
+import useLocalStorage from 'typescript-react-hooks-kit/useLocalStorage';
 
 import Header from './components/Header';
 import Message from './components/Message';
@@ -14,6 +14,15 @@ import ConfettiLayer from './components/ConfettiLayer';
 
 import styles from './App.module.scss';
 
+interface GuessDistribution {
+  1: number;
+  2: number;
+  3: number;
+  4: number;
+  5: number;
+  6: number;
+}
+
 const MESSAGES = {
   notEnoughLetters: 'Not enough letters',
   notInWordList: 'Not in word list',
@@ -22,46 +31,53 @@ const MESSAGES = {
 const ROW_COUNT = 6;
 const COLUMN_COUNT = 5;
 
-const App = () => {
-  const [completedWords, setCompletedWords] = useLocalStorage(
+const App: React.FC = () => {
+  const [completedWords, setCompletedWords] = useLocalStorage<string[]>(
     'completedWords',
     []
   );
-  const [gameCount, setGameCount] = useLocalStorage('gameCount', 0);
-  const [streakCount, setStreakCount] = useLocalStorage('streakCount', 0);
-  const [streak, setStreak] = useLocalStorage('streakCount', 0);
-  const [maxStreak, setMaxStreak] = useLocalStorage('streakCount', 0);
-  const [guessDistribution, setGuessDistribution] = useLocalStorage(
-    'guessDistribution',
-    {
+  const [gameCount, setGameCount] = useLocalStorage<number>('gameCount', 0);
+  const [streakCount, setStreakCount] = useLocalStorage<number>(
+    'streakCount',
+    0
+  );
+  const [streak, setStreak] = useLocalStorage<number>('streakCount', 0);
+  const [maxStreak, setMaxStreak] = useLocalStorage<number>('streakCount', 0);
+  const [guessDistribution, setGuessDistribution] =
+    useLocalStorage<GuessDistribution>('guessDistribution', {
       1: 0,
       2: 0,
       3: 0,
       4: 0,
       5: 0,
       6: 0,
-    }
-  );
+    });
 
   const wordsToRemove = new Set(completedWords);
   const nonCompletedWords = words.filter((x) => !wordsToRemove.has(x));
-  const [word, setWord] = useState(
+  const [word, setWord] = useState<string>(
     nonCompletedWords[randomIntFromInterval(0, nonCompletedWords.length)]
   );
-  const [entries, setEntries] = useState(
+  const [entries, setEntries] = useState<string[][]>(
     Array.from({ length: ROW_COUNT }, () => Array(COLUMN_COUNT).fill(''))
   );
-  const [currentRow, setCurrentRow] = useState(0);
-  const [matches, setMatches] = useState([]);
-  const [misses, setMisses] = useState([]);
-  const [gameOver, setGameOver] = useState(false);
-  const [shouldShowStats, setShouldShowStats] = useState(false);
-  const [shouldShowConfetti, setShouldShowConfetti] = useState(false);
-  const [isInvalid, setIsInvalid] = useState(false);
-  const [message, setMessage] = useState(null);
-  const [isWinner, setIsWinner] = useState(false);
+  const [currentRow, setCurrentRow] = useState<number>(0);
+  const [matches, setMatches] = useState<string[]>([]);
+  const [misses, setMisses] = useState<string[]>([]);
+  const [gameOver, setGameOver] = useState<boolean>(false);
+  const [shouldShowStats, setShouldShowStats] = useState<boolean>(false);
+  const [shouldShowConfetti, setShouldShowConfetti] = useState<boolean>(false);
+  const [isInvalid, setIsInvalid] = useState<boolean>(false);
+  const [message, setMessage] = useState<string | null>(null);
+  const [isWinner, setIsWinner] = useState<boolean>(false);
 
-  const showMessage = ({ message, invalid = false }) => {
+  const showMessage = ({
+    message,
+    invalid = false,
+  }: {
+    message: string;
+    invalid?: boolean;
+  }) => {
     setMessage(message);
     if (invalid) {
       setIsInvalid(true);
@@ -74,7 +90,8 @@ const App = () => {
       clearInterval(messageTimeout);
     }, 2500);
   };
-  const endGame = ({ win = false }) => {
+
+  const endGame = ({ win = false }: { win?: boolean }) => {
     showMessage({
       message: win ? MESSAGES.endGame[currentRow] : word.toUpperCase(),
     });
@@ -82,7 +99,7 @@ const App = () => {
     setGameCount(gameCount + 1);
     if (win) {
       setIsWinner(true);
-      let updatedGuessDistribution = guessDistribution;
+      let updatedGuessDistribution = { ...guessDistribution };
       updatedGuessDistribution[currentRow + 1] += 1;
       setStreak(streak + 1);
       setMaxStreak(Math.max(maxStreak, streak + 1));
@@ -102,9 +119,7 @@ const App = () => {
   };
 
   const submitEntry = () => {
-    if (gameOver) {
-      return;
-    }
+    if (gameOver) return;
     const entry = entries[currentRow];
     if (entry.includes('')) {
       showMessage({ message: MESSAGES.notEnoughLetters, invalid: true });
@@ -137,16 +152,12 @@ const App = () => {
     }
   };
 
-  const setLetter = (letter) => {
-    if (gameOver) {
-      return;
-    }
+  const setLetter = (letter: string) => {
+    if (gameOver) return;
     let currentEntries = [...entries];
     let currentEntryArray = entries[currentRow];
     const firstEmptyTile = currentEntryArray.indexOf('');
-    if (firstEmptyTile === -1) {
-      return;
-    }
+    if (firstEmptyTile === -1) return;
     currentEntryArray[firstEmptyTile] = letter;
     currentEntries[currentRow] = currentEntryArray;
     setEntries(currentEntries);
@@ -155,9 +166,7 @@ const App = () => {
   const removeLetter = () => {
     let currentEntryArray = entries[currentRow];
     const firstEmptyTile = currentEntryArray.indexOf('');
-    if (firstEmptyTile === 0) {
-      return;
-    }
+    if (firstEmptyTile === 0) return;
     let currentEntries = [...entries];
     currentEntryArray[
       firstEmptyTile === -1 ? COLUMN_COUNT - 1 : firstEmptyTile - 1
@@ -166,7 +175,7 @@ const App = () => {
     setEntries(currentEntries);
   };
 
-  const handleKeyPress = (e) => {
+  const handleKeyPress = (e: KeyboardEvent) => {
     e.preventDefault();
     if (e.keyCode === 8) {
       removeLetter();

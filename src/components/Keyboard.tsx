@@ -1,9 +1,17 @@
+import { FC } from 'react';
 import { KeyboardKey } from './KeyboardKey';
 import cx from 'classnames';
-
 import styles from './Keyboard.module.scss';
 
-const Keyboard = ({
+interface KeyboardProps {
+  matches?: string[];
+  misses?: string[];
+  setLetter: (letter: string) => void;
+  removeLetter: () => void;
+  submitEntry: () => void;
+}
+
+const Keyboard: FC<KeyboardProps> = ({
   matches = [],
   misses = [],
   setLetter,
@@ -15,6 +23,7 @@ const Keyboard = ({
     ['a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l'],
     ['z', 'x', 'c', 'v', 'b', 'n', 'm'],
   ];
+
   return (
     <table className={styles.keyboard}>
       <tbody>

@@ -1,9 +1,21 @@
+import { FC } from 'react';
 import Tile from './Tile';
 import cx from 'classnames';
-
 import styles from './TileGrid.module.scss';
 
-const TileGrid = ({ word, currentRow, entries, isInvalid }) => {
+interface TileGridProps {
+  word: string;
+  currentRow: number;
+  entries: string[][];
+  isInvalid: boolean;
+}
+
+const TileGrid: FC<TileGridProps> = ({
+  word,
+  currentRow,
+  entries,
+  isInvalid,
+}) => {
   return (
     <table className={styles.table}>
       <tbody className={styles.tbody}>

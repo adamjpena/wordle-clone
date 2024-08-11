@@ -1,8 +1,24 @@
+import { FC } from 'react';
 import cx from 'classnames';
-
 import styles from './Statistics.module.scss';
 
-const Statistics = ({
+interface GuessDistribution {
+  [key: number]: number;
+}
+
+interface StatisticsProps {
+  gameCount: number;
+  streakCount: number;
+  streak: number;
+  maxStreak: number;
+  guessDistribution: GuessDistribution;
+  currentRow: number;
+  closeStatistics: () => void;
+  startNewGame: () => void;
+  isWinner: boolean;
+}
+
+const Statistics: FC<StatisticsProps> = ({
   gameCount,
   streakCount,
   streak,

@@ -1,7 +1,15 @@
+import { FC } from 'react';
 import styles from './Tile.module.scss';
 import cx from 'classnames';
 
-const Tile = ({
+interface TileProps {
+  isAbsent?: boolean;
+  isPresent?: boolean;
+  isCorrect?: boolean;
+  letter?: string;
+}
+
+const Tile: FC<TileProps> = ({
   isAbsent = false,
   isPresent = false,
   isCorrect = false,

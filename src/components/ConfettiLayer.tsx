@@ -1,7 +1,11 @@
-import { useMemo } from 'react';
+import { FC, useMemo } from 'react';
 import { Confetti } from 'react-confetti-cannon';
 
-const ConfettiLayer = ({ guesses = 6 }) => {
+interface ConfettiLayerProps {
+  guesses?: number;
+}
+
+const ConfettiLayer: FC<ConfettiLayerProps> = ({ guesses = 6 }) => {
   const launchPoints = useMemo(
     () => [
       () => ({
@@ -11,7 +15,7 @@ const ConfettiLayer = ({ guesses = 6 }) => {
         spreadAngle: Math.PI,
       }),
     ],
-    [],
+    []
   );
 
   return (
