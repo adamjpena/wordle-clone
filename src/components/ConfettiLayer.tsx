@@ -1,30 +1,23 @@
-import { FC, useMemo } from 'react';
-import { Confetti } from 'react-confetti-cannon';
+import { useEffect } from 'react';
+import confetti from 'canvas-confetti';
+import { ROW_COUNT } from '../game/constants';
+import { GuessNumber } from '../game/types';
 
 interface ConfettiLayerProps {
-  guesses?: number;
+  guesses: GuessNumber;
 }
 
-const ConfettiLayer: FC<ConfettiLayerProps> = ({ guesses = 6 }) => {
-  const launchPoints = useMemo(
-    () => [
-      () => ({
-        x: window.innerWidth / 2,
-        y: window.innerHeight * 0.9,
-        angle: 0,
-        spreadAngle: Math.PI,
-      }),
-    ],
-    []
-  );
+const ConfettiLayer = ({ guesses }: ConfettiLayerProps) => {
+  useEffect(() => {
+    confetti({
+      particleCount: Math.max(48, 120 - guesses * 12),
+      spread: 70,
+      origin: { x: 0.5, y: 0.85 },
+      ticks: 220 - (ROW_COUNT - guesses) * 12,
+    });
+  }, [guesses]);
 
-  return (
-    <Confetti
-      launchPoints={launchPoints}
-      burstAmount={100 - 14 * guesses}
-      afterBurstAmount={0}
-    />
-  );
+  return null;
 };
 
 export default ConfettiLayer;

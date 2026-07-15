@@ -1,8 +1,34 @@
-import React, { useState, useEffect } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { words } from './store/game-words';
 import { wordsDictionary } from './store/dictionary-five-letters';
-import { randomIntFromInterval } from './helpers';
-import useLocalStorage from 'typescript-react-hooks-kit/useLocalStorage';
+import {
+  MESSAGES,
+  ROW_COUNT,
+  STORAGE_KEYS,
+} from './game/constants';
+import {
+  chooseRandomWord,
+  getBoardStatuses,
+  getKeyboardStatuses,
+  isCompleteGuess,
+  isValidGuess,
+  normalizeGuess,
+  normalizeStats,
+  recordGame,
+} from './game/logic';
+import { getInitialStats, normalizeCompletedWords } from './game/storage';
+import {
+  GameStats,
+  GuessNumber,
+  createEmptyBoard,
+} from './game/types';
+import { useLocalStorage } from './hooks/useLocalStorage';
 
 import Header from './components/Header';
 import Message from './components/Message';
@@ -14,181 +40,244 @@ import ConfettiLayer from './components/ConfettiLayer';
 
 import styles from './App.module.scss';
 
-interface GuessDistribution {
-  1: number;
-  2: number;
-  3: number;
-  4: number;
-  5: number;
-  6: number;
-}
+const messageDurationMs = 2500;
 
-const MESSAGES = {
-  notEnoughLetters: 'Not enough letters',
-  notInWordList: 'Not in word list',
-  endGame: ['Genius', 'Magnificent', 'Impressive', 'Splendid', 'Great', 'Phew'],
+const toGuessNumber = (value: number): GuessNumber => {
+  if (value < 1 || value > ROW_COUNT) {
+    throw new Error(`Invalid guess count: ${value}`);
+  }
+
+  return value as GuessNumber;
 };
-const ROW_COUNT = 6;
-const COLUMN_COUNT = 5;
 
-const App: React.FC = () => {
+const App = () => {
   const [completedWords, setCompletedWords] = useLocalStorage<string[]>(
-    'completedWords',
-    []
+    STORAGE_KEYS.completedWords,
+    [],
+    normalizeCompletedWords
   );
-  const [gameCount, setGameCount] = useLocalStorage<number>('gameCount', 0);
-  const [streakCount, setStreakCount] = useLocalStorage<number>(
-    'streakCount',
-    0
+  const [stats, setStats] = useLocalStorage<GameStats>(
+    STORAGE_KEYS.stats,
+    getInitialStats,
+    normalizeStats
   );
-  const [streak, setStreak] = useLocalStorage<number>('streakCount', 0);
-  const [maxStreak, setMaxStreak] = useLocalStorage<number>('streakCount', 0);
-  const [guessDistribution, setGuessDistribution] =
-    useLocalStorage<GuessDistribution>('guessDistribution', {
-      1: 0,
-      2: 0,
-      3: 0,
-      4: 0,
-      5: 0,
-      6: 0,
-    });
-
-  const wordsToRemove = new Set(completedWords);
-  const nonCompletedWords = words.filter((x) => !wordsToRemove.has(x));
-  const [word, setWord] = useState<string>(
-    nonCompletedWords[randomIntFromInterval(0, nonCompletedWords.length)]
+  const [word, setWord] = useState(() =>
+    chooseRandomWord({ words, completedWords })
   );
-  const [entries, setEntries] = useState<string[][]>(
-    Array.from({ length: ROW_COUNT }, () => Array(COLUMN_COUNT).fill(''))
-  );
-  const [currentRow, setCurrentRow] = useState<number>(0);
-  const [matches, setMatches] = useState<string[]>([]);
-  const [misses, setMisses] = useState<string[]>([]);
-  const [gameOver, setGameOver] = useState<boolean>(false);
-  const [shouldShowStats, setShouldShowStats] = useState<boolean>(false);
-  const [shouldShowConfetti, setShouldShowConfetti] = useState<boolean>(false);
-  const [isInvalid, setIsInvalid] = useState<boolean>(false);
+  const [entries, setEntries] = useState(createEmptyBoard);
+  const [currentRow, setCurrentRow] = useState(0);
+  const [gameOver, setGameOver] = useState(false);
+  const [shouldShowStats, setShouldShowStats] = useState(false);
+  const [shouldShowConfetti, setShouldShowConfetti] = useState(false);
+  const [isInvalid, setIsInvalid] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
-  const [isWinner, setIsWinner] = useState<boolean>(false);
+  const [isWinner, setIsWinner] = useState(false);
+  const [lastGuessCount, setLastGuessCount] = useState<GuessNumber | null>(
+    null
+  );
+  const messageTimeoutRef = useRef<number | null>(null);
+  const statsTimeoutRef = useRef<number | null>(null);
 
-  const showMessage = ({
-    message,
-    invalid = false,
-  }: {
-    message: string;
-    invalid?: boolean;
-  }) => {
-    setMessage(message);
-    if (invalid) {
-      setIsInvalid(true);
+  const clearMessageTimeout = useCallback(() => {
+    if (messageTimeoutRef.current !== null) {
+      window.clearTimeout(messageTimeoutRef.current);
+      messageTimeoutRef.current = null;
     }
-    let messageTimeout = setTimeout(() => {
-      setMessage(null);
-      if (invalid) {
+  }, []);
+
+  const clearStatsTimeout = useCallback(() => {
+    if (statsTimeoutRef.current !== null) {
+      window.clearTimeout(statsTimeoutRef.current);
+      statsTimeoutRef.current = null;
+    }
+  }, []);
+
+  const showMessage = useCallback(
+    ({
+      nextMessage,
+      invalid = false,
+    }: {
+      nextMessage: string;
+      invalid?: boolean;
+    }) => {
+      clearMessageTimeout();
+      setMessage(nextMessage);
+      setIsInvalid(invalid);
+
+      messageTimeoutRef.current = window.setTimeout(() => {
+        setMessage(null);
         setIsInvalid(false);
+        messageTimeoutRef.current = null;
+      }, messageDurationMs);
+    },
+    [clearMessageTimeout]
+  );
+
+  const boardStatuses = useMemo(
+    () =>
+      getBoardStatuses({
+        board: entries,
+        answer: word,
+        submittedRows: currentRow,
+      }),
+    [currentRow, entries, word]
+  );
+
+  const keyboardStatuses = useMemo(
+    () =>
+      getKeyboardStatuses({
+        board: entries,
+        answer: word,
+        submittedRows: currentRow,
+      }),
+    [currentRow, entries, word]
+  );
+
+  const setLetter = useCallback(
+    (letter: string) => {
+      if (gameOver || currentRow >= ROW_COUNT || !/^[a-z]$/.test(letter)) {
+        return;
       }
-      clearInterval(messageTimeout);
-    }, 2500);
-  };
 
-  const endGame = ({ win = false }: { win?: boolean }) => {
-    showMessage({
-      message: win ? MESSAGES.endGame[currentRow] : word.toUpperCase(),
+      setEntries((currentEntries) => {
+        const currentEntry = [...currentEntries[currentRow]];
+        const firstEmptyTile = currentEntry.indexOf('');
+
+        if (firstEmptyTile === -1) {
+          return currentEntries;
+        }
+
+        currentEntry[firstEmptyTile] = letter;
+
+        return currentEntries.map((row, rowIndex) =>
+          rowIndex === currentRow ? currentEntry : row
+        );
+      });
+    },
+    [currentRow, gameOver]
+  );
+
+  const removeLetter = useCallback(() => {
+    if (gameOver || currentRow >= ROW_COUNT) {
+      return;
+    }
+
+    setEntries((currentEntries) => {
+      const currentEntry = [...currentEntries[currentRow]];
+      const firstEmptyTile = currentEntry.indexOf('');
+      const letterIndex =
+        firstEmptyTile === -1 ? currentEntry.length - 1 : firstEmptyTile - 1;
+
+      if (letterIndex < 0) {
+        return currentEntries;
+      }
+
+      currentEntry[letterIndex] = '';
+
+      return currentEntries.map((row, rowIndex) =>
+        rowIndex === currentRow ? currentEntry : row
+      );
     });
-    setGameOver(true);
-    setGameCount(gameCount + 1);
-    if (win) {
-      setIsWinner(true);
-      let updatedGuessDistribution = { ...guessDistribution };
-      updatedGuessDistribution[currentRow + 1] += 1;
-      setStreak(streak + 1);
-      setMaxStreak(Math.max(maxStreak, streak + 1));
-      setCurrentRow(currentRow + 1);
-      setStreakCount(streakCount + 1);
-      setCompletedWords([...completedWords, word]);
-      setGuessDistribution(updatedGuessDistribution);
-      setShouldShowConfetti(true);
-      let showStatsTimeout = setTimeout(() => {
-        setShouldShowStats(true);
-        clearInterval(showStatsTimeout);
-      }, 2500);
+  }, [currentRow, gameOver]);
+
+  const endGame = useCallback(
+    ({ didWin, guesses }: { didWin: boolean; guesses: GuessNumber }) => {
+      setGameOver(true);
+      setIsWinner(didWin);
+      setLastGuessCount(guesses);
+      setStats((currentStats) =>
+        recordGame({ stats: currentStats, didWin, guesses })
+      );
+
+      if (didWin) {
+        setCompletedWords((currentCompletedWords) =>
+          currentCompletedWords.includes(word)
+            ? currentCompletedWords
+            : [...currentCompletedWords, word]
+        );
+        setShouldShowConfetti(true);
+        showMessage({ nextMessage: MESSAGES.endGame[guesses - 1] });
+        clearStatsTimeout();
+        statsTimeoutRef.current = window.setTimeout(() => {
+          setShouldShowStats(true);
+          statsTimeoutRef.current = null;
+        }, messageDurationMs);
+        return;
+      }
+
+      showMessage({ nextMessage: word.toUpperCase() });
+      setShouldShowStats(true);
+    },
+    [
+      clearStatsTimeout,
+      setCompletedWords,
+      setStats,
+      showMessage,
+      word,
+    ]
+  );
+
+  const submitEntry = useCallback(() => {
+    if (gameOver || currentRow >= ROW_COUNT) {
       return;
     }
-    setStreak(0);
-    setShouldShowStats(true);
-  };
 
-  const submitEntry = () => {
-    if (gameOver) return;
     const entry = entries[currentRow];
-    if (entry.includes('')) {
-      showMessage({ message: MESSAGES.notEnoughLetters, invalid: true });
+
+    if (!isCompleteGuess(entry)) {
+      showMessage({
+        nextMessage: MESSAGES.notEnoughLetters,
+        invalid: true,
+      });
       return;
     }
-    const entryWord = entry.join('');
-    let currentEntries = [...entries];
-    if (entryWord === word) {
-      setIsInvalid(false);
-      setMatches(entry);
-      currentEntries[currentRow] = entry;
-      setEntries(currentEntries);
-      endGame({ win: true });
+
+    const guess = normalizeGuess(entry);
+
+    if (!isValidGuess({ guess, answer: word, dictionary: wordsDictionary })) {
+      showMessage({
+        nextMessage: MESSAGES.notInWordList,
+        invalid: true,
+      });
       return;
     }
-    if (!wordsDictionary.includes(entryWord)) {
-      showMessage({ message: MESSAGES.notInWordList, invalid: true });
-      return;
-    }
+
+    const guesses = toGuessNumber(currentRow + 1);
+    const didWin = guess === word;
+
     setIsInvalid(false);
-    setCurrentRow(currentRow + 1);
-    currentEntries[currentRow] = entry;
-    setEntries(currentEntries);
-    const currentMatches = entry.filter((letter) => word.includes(letter));
-    setMatches(Array.from(new Set([...currentMatches, ...matches])));
-    const currentMisses = entry.filter((letter) => !word.includes(letter));
-    setMisses(Array.from(new Set([...currentMisses, ...misses])));
-    if (currentRow === ROW_COUNT - 1) {
-      endGame({ win: false });
-    }
-  };
+    setCurrentRow((row) => row + 1);
 
-  const setLetter = (letter: string) => {
-    if (gameOver) return;
-    let currentEntries = [...entries];
-    let currentEntryArray = entries[currentRow];
-    const firstEmptyTile = currentEntryArray.indexOf('');
-    if (firstEmptyTile === -1) return;
-    currentEntryArray[firstEmptyTile] = letter;
-    currentEntries[currentRow] = currentEntryArray;
-    setEntries(currentEntries);
-  };
+    if (didWin || currentRow === ROW_COUNT - 1) {
+      endGame({ didWin, guesses });
+    }
+  }, [currentRow, endGame, entries, gameOver, showMessage, word]);
 
-  const removeLetter = () => {
-    let currentEntryArray = entries[currentRow];
-    const firstEmptyTile = currentEntryArray.indexOf('');
-    if (firstEmptyTile === 0) return;
-    let currentEntries = [...entries];
-    currentEntryArray[
-      firstEmptyTile === -1 ? COLUMN_COUNT - 1 : firstEmptyTile - 1
-    ] = '';
-    currentEntries[currentRow] = currentEntryArray;
-    setEntries(currentEntries);
-  };
+  const handleKeyPress = useCallback(
+    (event: KeyboardEvent) => {
+      if (event.metaKey || event.ctrlKey || event.altKey) {
+        return;
+      }
 
-  const handleKeyPress = (e: KeyboardEvent) => {
-    e.preventDefault();
-    if (e.keyCode === 8) {
-      removeLetter();
-      return;
-    }
-    if (e.keyCode === 13) {
-      submitEntry();
-      return;
-    }
-    if (e.key.length === 1 && /[a-zA-Z]/.test(e.key)) {
-      setLetter(e.key.toLowerCase());
-    }
-  };
+      if (event.key === 'Backspace') {
+        event.preventDefault();
+        removeLetter();
+        return;
+      }
+
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        submitEntry();
+        return;
+      }
+
+      if (/^[a-zA-Z]$/.test(event.key)) {
+        event.preventDefault();
+        setLetter(event.key.toLowerCase());
+      }
+    },
+    [removeLetter, setLetter, submitEntry]
+  );
 
   useEffect(() => {
     window.addEventListener('keydown', handleKeyPress);
@@ -196,59 +285,55 @@ const App: React.FC = () => {
     return () => {
       window.removeEventListener('keydown', handleKeyPress);
     };
-  });
+  }, [handleKeyPress]);
 
-  if (process.env.NODE_ENV === 'development') {
-    // show word for dev purposes
-    console.log(word);
-  }
+  useEffect(() => {
+    return () => {
+      clearMessageTimeout();
+      clearStatsTimeout();
+    };
+  }, [clearMessageTimeout, clearStatsTimeout]);
 
-  const startNewGame = () => {
-    const wordsToRemove = new Set(completedWords);
-    const nonCompletedWords = words.filter((x) => !wordsToRemove.has(x));
-    setEntries(
-      Array.from({ length: ROW_COUNT }, () => Array(COLUMN_COUNT).fill(''))
-    );
-    setWord(
-      nonCompletedWords[randomIntFromInterval(0, nonCompletedWords.length)]
-    );
+  const startNewGame = useCallback(() => {
+    clearMessageTimeout();
+    clearStatsTimeout();
+    setEntries(createEmptyBoard());
+    setWord(chooseRandomWord({ words, completedWords }));
     setCurrentRow(0);
-    setMatches([]);
-    setMisses([]);
     setShouldShowStats(false);
     setShouldShowConfetti(false);
     setIsWinner(false);
+    setLastGuessCount(null);
     setGameOver(false);
-  };
+    setIsInvalid(false);
+    setMessage(null);
+  }, [clearMessageTimeout, clearStatsTimeout, completedWords]);
 
   return (
     <div className={styles.app}>
       <Header />
-      <main>
+      <main className={styles.main}>
         {message && <Message message={message} />}
         <TileGrid
-          word={word}
-          currentRow={currentRow}
           entries={entries}
           isInvalid={isInvalid}
+          statuses={boardStatuses}
+          currentRow={currentRow}
         />
         <Keyboard
-          matches={matches}
-          misses={misses}
+          keyStatuses={keyboardStatuses}
           setLetter={setLetter}
           removeLetter={removeLetter}
           submitEntry={submitEntry}
         />
-        {shouldShowConfetti && <ConfettiLayer guesses={currentRow + 1} />}
+        {shouldShowConfetti && lastGuessCount && (
+          <ConfettiLayer guesses={lastGuessCount} />
+        )}
         {shouldShowStats && (
           <Overlay>
             <Statistics
-              gameCount={gameCount}
-              streakCount={streakCount}
-              streak={streak}
-              maxStreak={maxStreak}
-              guessDistribution={guessDistribution}
-              currentRow={currentRow}
+              stats={stats}
+              lastGuessCount={lastGuessCount}
               startNewGame={startNewGame}
               closeStatistics={startNewGame}
               isWinner={isWinner}

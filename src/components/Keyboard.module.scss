@@ -1,5 +1,8 @@
 .keyboard {
+  display: grid;
+  gap: 5px;
   margin: 3px auto;
+  width: min(100%, 520px);
 }
 
 .row {
@@ -12,13 +15,6 @@
   touch-action: manipulation;
 }
 
-.cell {
-  // align-items: center;
-  display: flex;
-  // justify-content: center;
-  touch-action: manipulation;
-}
-
 .button {
   background-color: #818384;
   border: none;
@@ -27,19 +23,27 @@
   cursor: pointer;
   display: block;
   font-size: 14px;
+  font-weight: 700;
   height: 58px;
   width: 43px;
   max-width: calc(10vw - 7px);
+  text-transform: uppercase;
+  touch-action: manipulation;
 
   &.special {
     min-width: 43px;
     max-width: none;
+    padding: 0 12px;
     width: auto;
   }
 }
 
 .absent {
   background-color: #3a3a3c;
+}
+
+.present {
+  background-color: #b59f3b;
 }
 
 .correct {

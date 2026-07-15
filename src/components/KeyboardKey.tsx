@@ -1,22 +1,33 @@
-import { FC } from 'react';
+import cx from 'classnames';
+import { TileStatus } from '../game/types';
+import styles from './Keyboard.module.scss';
 
 interface KeyboardKeyProps {
-  className: string;
   letter: string;
+  status?: Exclude<TileStatus, 'empty'>;
   setLetter: (letter: string) => void;
 }
 
-export const KeyboardKey: FC<KeyboardKeyProps> = ({
-  className,
+export const KeyboardKey = ({
   letter,
+  status,
   setLetter,
-}) => {
+}: KeyboardKeyProps) => {
   const handleClick = () => {
     setLetter(letter);
   };
 
   return (
-    <button className={className} onClick={handleClick}>
+    <button
+      type="button"
+      className={cx(styles.button, {
+        [styles.absent]: status === 'absent',
+        [styles.present]: status === 'present',
+        [styles.correct]: status === 'correct',
+      })}
+      aria-label={`Letter ${letter.toUpperCase()}`}
+      onClick={handleClick}
+    >
       {letter.toUpperCase()}
     </button>
   );

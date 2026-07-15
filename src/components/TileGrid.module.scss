@@ -21,24 +21,18 @@
   }
 }
 
-.table {
-  margin: auto;
+.board {
+  display: grid;
+  gap: 5px;
+  margin: 0 auto 24px;
   max-width: 100%;
   width: 350px;
 }
 
-.tbody {
-  column-gap: 5px;
-  display: grid;
-  grid-template-rows: repeat(6, 1fr);
-  row-gap: 5px;
-}
-
 .row {
-  column-gap: 5px;
   display: grid;
+  column-gap: 5px;
   grid-template-columns: repeat(5, 1fr);
-  row-gap: 5px;
 
   &.invalid {
     animation: shake 600ms;

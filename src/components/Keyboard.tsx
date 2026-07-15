@@ -1,77 +1,60 @@
-import { FC } from 'react';
 import { KeyboardKey } from './KeyboardKey';
 import cx from 'classnames';
 import styles from './Keyboard.module.scss';
+import { KEYBOARD_ROWS } from '../game/constants';
+import { KeyboardStatus } from '../game/types';
 
 interface KeyboardProps {
-  matches?: string[];
-  misses?: string[];
+  keyStatuses: KeyboardStatus;
   setLetter: (letter: string) => void;
   removeLetter: () => void;
   submitEntry: () => void;
 }
 
-const Keyboard: FC<KeyboardProps> = ({
-  matches = [],
-  misses = [],
+const Keyboard = ({
+  keyStatuses,
   setLetter,
   removeLetter,
   submitEntry,
-}) => {
-  const keyboardLetters = [
-    ['q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p'],
-    ['a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l'],
-    ['z', 'x', 'c', 'v', 'b', 'n', 'm'],
-  ];
-
+}: KeyboardProps) => {
   return (
-    <table className={styles.keyboard}>
-      <tbody>
-        {keyboardLetters.map((keyboardRow, i) => {
-          const isLastRow = i === keyboardLetters.length - 1;
-          return (
-            <tr className={styles.row} key={`keyboard-row-${i}`}>
-              {isLastRow && (
-                <td>
-                  <button
-                    className={cx(styles.button, styles.special)}
-                    onClick={submitEntry}
-                  >
-                    ENTER
-                  </button>
-                </td>
-              )}
-              {keyboardRow.map((letter) => {
-                const isInMatches = matches.includes(letter);
-                const isInMisses = misses.includes(letter);
-                return (
-                  <td className={styles.cell} key={`keyboard-key-${letter}`}>
-                    <KeyboardKey
-                      className={cx(styles.button, {
-                        [styles.absent]: isInMisses,
-                        [styles.correct]: isInMatches,
-                      })}
-                      letter={letter}
-                      setLetter={setLetter}
-                    />
-                  </td>
-                );
-              })}
-              {isLastRow && (
-                <td>
-                  <button
-                    className={cx(styles.button, styles.special)}
-                    onClick={removeLetter}
-                  >
-                    ⌫
-                  </button>
-                </td>
-              )}
-            </tr>
-          );
-        })}
-      </tbody>
-    </table>
+    <div className={styles.keyboard} aria-label="Keyboard">
+      {KEYBOARD_ROWS.map((keyboardRow, rowIndex) => {
+        const isLastRow = rowIndex === KEYBOARD_ROWS.length - 1;
+
+        return (
+          <div className={styles.row} key={`keyboard-row-${rowIndex}`}>
+            {isLastRow && (
+              <button
+                type="button"
+                className={cx(styles.button, styles.special)}
+                onClick={submitEntry}
+              >
+                Enter
+              </button>
+            )}
+            {keyboardRow.map((letter) => (
+              <KeyboardKey
+                key={`keyboard-key-${letter}`}
+                letter={letter}
+                status={keyStatuses[letter]}
+                setLetter={setLetter}
+              />
+            ))}
+            {isLastRow && (
+              <button
+                type="button"
+                className={cx(styles.button, styles.special)}
+                aria-label="Backspace"
+                onClick={removeLetter}
+              >
+                ⌫
+              </button>
+            )}
+          </div>
+        );
+      })}
+    </div>
   );
 };
 
