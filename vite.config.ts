@@ -6,6 +6,11 @@ export default defineConfig({
   plugins: [react()],
   test: {
     environment: 'jsdom',
+    environmentOptions: {
+      jsdom: {
+        url: 'http://localhost/wordle-clone/',
+      },
+    },
     globals: true,
     setupFiles: './src/setupTests.ts',
   },
